@@ -70,7 +70,5 @@ public class CatalogDao {
 
         dynamoDbMapper.save(book);
 
-
-
     }
 }

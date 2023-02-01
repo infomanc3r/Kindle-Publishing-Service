@@ -7,12 +7,23 @@ participant RemoveBookFromCatalogActivity
 participant CatalogDao
 database DynamoDB
 
+Client -> LoadBalancerECS : HTTP request
+LoadBalancerECS -> RemoveBookFromCatalogActivity : execute(RemoveBookFromCatalogRequest)
+RemoveBookFromCatalogActivity -> CatalogDao : removeBookFromCatalog(bookId)
+CatalogDao -> DynamoDB : getLatestVersionOfBook
 
+alt if no version exists for provided (bookId)
+    CatalogDao <-- DynamoDB : null
+    RemoveBookFromCatalogActivity <-- CatalogDao : throw BookNotFoundException
+    LoadBalancerECS <-- RemoveBookFromCatalogActivity : transform to KindlePublishingClientException
+    Client <-- LoadBalancerECS : 400 response
+else otherwise, continue
+end
 
-
-
-
-
-
+CatalogDao <-- DynamoDB : CatalogItemVersion
+CatalogDao -> DynamoDB : save(book with inactive set to true)
+RemoveBookFromCatalogActivity <-- CatalogDao : RemoveBookFromCatalogResponse
+LoadBalancerECS <-- RemoveBookFromCatalogActivity : RemoveBookFromCatalogResponse
+Client <-- LoadBalancerECS : 200 response with data
 
 @enduml

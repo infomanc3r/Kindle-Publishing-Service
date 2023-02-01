@@ -131,4 +131,10 @@ public class MasteryTaskOneTests extends IntegrationTestBase {
         assertThrows(BookNotFoundException.class, () ->
                 COMPONENT.provideGetBookActivity().execute(getBookRequest));
     }
+
+//    @Test
+//    public void removeBook_directCatalogDao_removesBook_customTest() {
+//        // GIVEN
+//
+//    }
 }
