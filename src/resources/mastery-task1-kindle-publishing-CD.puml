@@ -1,1 +1,74 @@
-PARTICIPANTS: use this file for creating the class diagram in mastery task 01
+@startuml
+title Kindle Publishing Service
+
+class GetBookActivity {
++execute(GetBookRequest request) : GetBookResponse
+}
+
+class GetPublishingStatusActivity {
++execute(GetPublishingStatusRequest request) : GetPublishingStatusResponse
+}
+
+class RemoveBookFromCatalogActivity {
++execute(RemoveBookFromCatalogRequest request) : RemoveBookFromCatalogResponse
+}
+
+class SubmitBookForPublishingActivity {
++execute(SubmitBookForPublishingRequest request) : SubmitBookForPublishingResponse
+}
+
+class RecommendationsServiceClient {
++getBookRecommendations(BookGenre genre) : List<BookRecommendation>
+}
+
+class CatalogDao {
+-dynamoDBMapper : DynamoDBMapper
++getBookFromCatalog(String bookId) : CatalogItemVersion
+-getLatestVersionOfBook(String bookId) : CatalogItemVersion
+}
+
+class PublishingStatusDao {
+-dynamoDBMapper : DynamoDBMapper
++setPublishingStatus(String publishingRecordId, PublishingRecordStatus publishingRecordStatus, String bookId) : PublishingStatusItem
++setPublishingStatus(String publishingRecordId, PublishingRecordStatus publishingRecordStatus, String bookId, String message) : PublishingStatusItem
+}
+
+class CatalogItemVersion {
+@DynamoDBHashKey bookId : String
+@DynamoDBRangeKey version : int
+-title : String
+-author : String
+-text : String
+-genre : BookGenre
+-inactive : boolean
+
+}
+
+class PublishingStatusItem {
+@DynamoDBHashKey publishingRecordId : String
+@DynamoDBRangeKey status : PublishingRecordStatus
+-statusMessage : String
+-bookId : String
+}
+
+class BookNotFoundException {
++BookNotFoundException(String message)
++BookNotFoundException(String message, Throwable cause)
+}
+
+class PublishingStatusNotFoundException {
++PublishingStatusNotFoundException(String message)
++PublishingStatusNotFoundException(String message, Throwable cause)
+}
+
+GetBookActivity *-- CatalogDao
+GetBookActivity *-- RecommendationsServiceClient
+SubmitBookForPublishingActivity *-- PublishingStatusDao
+
+CatalogItemVersion -- CatalogDao
+PublishingStatusItem -- PublishingStatusDao
+CatalogDao -- BookNotFoundException
+PublishingStatusDao -- PublishingStatusNotFoundException
+
+
+@enduml
