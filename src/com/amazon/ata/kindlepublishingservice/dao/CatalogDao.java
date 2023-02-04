@@ -44,6 +44,10 @@ public class CatalogDao {
 
     // Returns null if no version exists for the provided bookId
     private CatalogItemVersion getLatestVersionOfBook(String bookId) {
+
+        if(bookId == null) {
+            return null;
+        }
         CatalogItemVersion book = new CatalogItemVersion();
         book.setBookId(bookId);
 
@@ -72,13 +76,99 @@ public class CatalogDao {
 
     }
 
-    public void validateBookExists(String bookId) {
+    public void validateBookExists(String bookId) throws BookNotFoundException {
 
-        CatalogItemVersion book = getLatestVersionOfBook(bookId);
+        CatalogItemVersion book = getBookFromCatalog(bookId);
 
         if(book == null) {
             throw new BookNotFoundException(String.format("No book found for id: %s", bookId));
         }
+
+    }
+
+    public void addBook(CatalogItemVersion bookToAdd) {
+        dynamoDbMapper.save(bookToAdd);
+    }
+
+    public CatalogItemVersion createOrUpdateBook(KindleFormattedBook formattedBook) {
+
+        CatalogItemVersion book = getLatestVersionOfBook(formattedBook.getBookId());
+
+        if(book == null) {
+            
+            CatalogItemVersion bookToAdd = new CatalogItemVersion();
+
+            bookToAdd.setBookId(KindlePublishingUtils.generateBookId());
+            bookToAdd.setVersion(1);
+            bookToAdd.setTitle(formattedBook.getTitle());
+            bookToAdd.setAuthor(formattedBook.getAuthor());
+            bookToAdd.setText(formattedBook.getText());
+            bookToAdd.setGenre(formattedBook.getGenre());
+            bookToAdd.setInactive(false);
+
+            addBook(bookToAdd);
+
+            return bookToAdd;
+        } else {
+            CatalogItemVersion bookToUpdate = getBookFromCatalog(formattedBook.getBookId());
+            int currentVersion = bookToUpdate.getVersion();
+            CatalogItemVersion bookToAdd = new CatalogItemVersion();
+
+            bookToAdd.setBookId(bookToUpdate.getBookId());
+            bookToAdd.setVersion(currentVersion + 1);
+            bookToAdd.setTitle(formattedBook.getTitle());
+            bookToAdd.setAuthor(formattedBook.getAuthor());
+            bookToAdd.setText(formattedBook.getText());
+            bookToAdd.setGenre(formattedBook.getGenre());
+            bookToAdd.setInactive(false);
+
+            addBook(bookToAdd);
+
+            bookToUpdate.setInactive(true);
+            addBook(bookToUpdate);
+
+            return bookToAdd;
+
+        }
+
+//        try {
+//            validateBookExists(formattedBook.getBookId());
+//            CatalogItemVersion bookToUpdate = getBookFromCatalog(formattedBook.getBookId());
+//            int currentVersion = bookToUpdate.getVersion();
+//            CatalogItemVersion bookToAdd = new CatalogItemVersion();
+//
+//            bookToAdd.setBookId(bookToUpdate.getBookId());
+//            bookToAdd.setVersion(currentVersion + 1);
+//            bookToAdd.setTitle(formattedBook.getTitle());
+//            bookToAdd.setAuthor(formattedBook.getAuthor());
+//            bookToAdd.setText(formattedBook.getText());
+//            bookToAdd.setGenre(formattedBook.getGenre());
+//            bookToAdd.setInactive(false);
+//
+//            addBook(bookToAdd);
+//
+//            bookToUpdate.setInactive(true);
+//            addBook(bookToUpdate);
+//
+//            return bookToAdd;
+//        } catch (BookNotFoundException e) {
+//            System.out.println("****BOOK ID NOT FOUND - ATTEMPTING TO ADD BOOK****");
+//            CatalogItemVersion bookToAdd = new CatalogItemVersion();
+//
+//            bookToAdd.setBookId(KindlePublishingUtils.generateBookId());
+//            bookToAdd.setVersion(1);
+//            bookToAdd.setTitle(formattedBook.getTitle());
+//            bookToAdd.setAuthor(formattedBook.getAuthor());
+//            bookToAdd.setText(formattedBook.getText());
+//            bookToAdd.setGenre(formattedBook.getGenre());
+//            bookToAdd.setInactive(false);
+//
+//            addBook(bookToAdd);
+//
+//            return bookToAdd;
+//
+//        }
+
 
     }
 }
