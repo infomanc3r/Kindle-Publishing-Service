@@ -48,6 +48,7 @@ public class CatalogDao {
         if(bookId == null) {
             return null;
         }
+
         CatalogItemVersion book = new CatalogItemVersion();
         book.setBookId(bookId);
 
@@ -57,9 +58,11 @@ public class CatalogDao {
             .withLimit(1);
 
         List<CatalogItemVersion> results = dynamoDbMapper.query(CatalogItemVersion.class, queryExpression);
+
         if (results.isEmpty()) {
             return null;
         }
+
         return results.get(0);
     }
 
@@ -95,7 +98,7 @@ public class CatalogDao {
         CatalogItemVersion book = getLatestVersionOfBook(formattedBook.getBookId());
 
         if(book == null) {
-            
+
             CatalogItemVersion bookToAdd = new CatalogItemVersion();
 
             bookToAdd.setBookId(KindlePublishingUtils.generateBookId());
@@ -109,7 +112,9 @@ public class CatalogDao {
             addBook(bookToAdd);
 
             return bookToAdd;
+
         } else {
+
             CatalogItemVersion bookToUpdate = getBookFromCatalog(formattedBook.getBookId());
             int currentVersion = bookToUpdate.getVersion();
             CatalogItemVersion bookToAdd = new CatalogItemVersion();

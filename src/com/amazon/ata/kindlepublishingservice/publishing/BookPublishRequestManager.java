@@ -4,13 +4,14 @@ import dagger.Provides;
 
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class BookPublishRequestManager {
 
     private Queue<BookPublishRequest> queue;
 
     public BookPublishRequestManager () {
-        queue = new LinkedList<>();
+        queue = new ConcurrentLinkedQueue<>();
     }
 
     public void addBookPublishRequest(BookPublishRequest request) {
